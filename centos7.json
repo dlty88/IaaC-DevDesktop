@@ -1,0 +1,45 @@
+{
+  "builders": [
+    {
+    "type": "virtualbox-iso",
+    "vboxmanage": [
+      ["modifyvm", "{{.Name}}", "--nictype1", "virtio", "--memory", "1024"]
+    ],    
+    "guest_os_type": "RedHat_64",
+    "headless": "",
+    "iso_url": "http://mirror.qoxy.com/centos/7.6.1810/isos/x86_64/CentOS-7-x86_64-DVD-1810.iso",
+    "iso_checksum": "6d44331cc4f6c506c7bbe9feb8468fad6c51a88ca1393ca6b8b486ea04bec3c1",
+    "iso_checksum_type": "sha256",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "boot_wait":"5s",
+    "ssh_wait_timeout": "10000s",
+    "boot_command": [
+      "<esc>",
+      "<wait>linux inst.ks=hd:/dev/fd0:ks.cfg<enter>"
+    ],
+    "disk_size": 100000,
+    "floppy_files": [
+      "ks.cfg"
+    ],
+    "hard_drive_interface": "sata",
+    "shutdown_command": "echo 'shutdown -P now' > shutdown.sh; echo 'vagrant'|sudo -S sh 'shutdown.sh'"
+    }],
+  "provisioners": [{
+    "type": "shell",
+    "execute_command": "echo 'vagrant' | sudo -S sh '{{ .Path }}'",
+    "inline": [
+      "sleep 30",
+      "mkdir /media/VBoxGuestAdditions",
+      "mount -o loop,ro /home/vagrant/VBoxGuestAdditions.iso /media/VBoxGuestAdditions",
+      "/bin/sh /media/VBoxGuestAdditions/VBoxLinuxAdditions.run",
+      "umount /media/VBoxGuestAdditions",
+      "rmdir /media/VBoxGuestAdditions"
+    ]
+  }],
+  "post-processors": [{
+    "type": "vagrant",
+    "keep_input_artifact": true,
+    "output": "centos_7_with_guestadditions.box"
+  }]
+}
